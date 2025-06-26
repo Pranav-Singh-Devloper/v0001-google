@@ -1,0 +1,12 @@
+beautifulsoup4       # for bs4.BeautifulSoup
+fastapi              # for FastAPI, HTTPException, CORS middleware
+pydantic             # for BaseModel
+python-dotenv        # for dotenv.load_dotenv
+supabase             # for supabase.create_client
+mangum               # for Mangum handler
+openai               # for OpenAI client
+streamlit            # for streamlit (st)
+rank-bm25            # for BM25Okapi
+nltk                 # for word_tokenize
+pymongo              # for MongoClient
+uvicorn 
