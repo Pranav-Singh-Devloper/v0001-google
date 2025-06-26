@@ -16,3 +16,5 @@ env/
 
 # Ignore macOS system files (optional)
 .DS_Store
+
+.env
