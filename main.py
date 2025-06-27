@@ -165,12 +165,14 @@ def search_mdb(request: ProfileRequest) -> List[Dict[str, Any]]:
                 d["job_id"] = d.pop("_id")
 
         # 3) Simplify jobs (optional)
-        simplified_docs = [simplify_job(job) for job in clean_docs[:5]]
+        copy = [simplify_job(job) for job in clean_docs[:15]]
+        simplified_docs = copy[:3]
 
         # 4) Run LLM analyzer
         analysis = analyze_match(simplified_docs, request.students)
 
-        return JSONResponse(content={"analysis": analysis})
+        return JSONResponse(content={"analysis": analysis, "mongodb_result": copy})
+
 
 
     except Exception as e:
