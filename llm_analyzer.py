@@ -43,13 +43,15 @@ def analyze_match(jobs: list, student_data: list) -> str:
     # 4. Instantiate client WITH all required headers (including Authorization)
     print("🔧 Instantiating OpenRouter client with full headers")
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        default_headers={
-            "Authorization": f"Bearer {openrouter_key}",
-            "HTTP-Referer": "https://v0001-google-production.up.railway.app",
-            "X-Title":    "JobMatch AI"
+    base_url="https://openrouter.ai/api/v1",
+    api_key=openrouter_key,
+    default_headers={
+        "Authorization": f"Bearer {openrouter_key}",
+        "HTTP-Referer": "https://v0001-google-production.up.railway.app",
+        "X-Title": "JobMatch AI"
         }
     )
+
 
     primary_model  = "deepseek/deepseek-r1:free"
     fallback_model = "tngtech/deepseek-r1t-chimera:free"
