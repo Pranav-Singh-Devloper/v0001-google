@@ -8,87 +8,78 @@ logger = logging.getLogger("llm_analyzer")
 logging.basicConfig(level=logging.INFO)
 
 def analyze_match(jobs: list, student_data: list) -> str:
-    """
-    Analyze job matches for a given student using DeepSeek models via OpenRouter.
-    """
     logger.info("▶️ Starting analyze_match")
 
+    # 1) Read the OpenRouter key
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
-    logger.info(f"🔑 OPENROUTER_API_KEY starts with: {openrouter_key[:10] if openrouter_key else 'None'}")
+    logger.info(f"🔑 OPENROUTER_API_KEY starts with: {openrouter_key[:8]!r}" if openrouter_key else "🔑 No key")
     if not openrouter_key:
         return "❌ OPENROUTER_API_KEY is missing."
 
+    # 2) Also set it as OPENAI_API_KEY so the SDK picks it up unconditionally
+    os.environ["OPENAI_API_KEY"] = openrouter_key
+
+    # 3) Sanitize inputs
     if not student_data:
         return "❌ No student data provided."
-    logger.info(f"🗂 Received {len(jobs)} job(s) and {len(student_data)} student record(s)")
-
+    logger.info(f"🗂 Received {len(jobs)} job(s) and {len(student_data)} student(s)")
     jobs_clean = [oid_to_str(job) for job in jobs if isinstance(job, dict)]
     if not jobs_clean:
         return "❌ No jobs to analyze."
     logger.info(f"🧹 jobs_clean length: {len(jobs_clean)}")
-
     student_clean = oid_to_str(student_data[0])
     logger.info(f"👤 student_clean keys: {list(student_clean.keys())}")
 
-    jobs_json = json.dumps(jobs_clean, indent=2, separators=(",", ":"))
+    # 4) Build prompts
+    jobs_json    = json.dumps(jobs_clean, indent=2, separators=(",", ":"))
     student_json = json.dumps(student_clean, indent=2, separators=(",", ":"))
-
     system_prompt = (
-        "You are an expert career advisor and the world’s most accurate job matcher. "
-        "Analyze the following JSON array of job postings and a JSON student profile.\n\n"
-        "1. Evaluate relevance (role, domain, skills).\n"
-        "2. Assign a Match Score (0–100%).\n"
-        "3. Report the top fits with:\n"
-        "   • Title, Company, Score\n"
-        "   • ✅ Why it’s a good fit\n"
-        "   • ⚠️ Mismatches\n\n"
+        "You are an expert career advisor and the world’s most accurate job matcher.\n\n"
         f"Job Postings:\n{jobs_json}"
     )
     user_prompt = f"Student Profile:\n{student_json}"
-    logger.info("✍️ Prompts built (system & user)")
+    logger.info("✍️ Prompts built")
 
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=openrouter_key
-    )
-    logger.info("🔧 Instantiating OpenRouter client")
+    # 5) Instantiate client (SDK will use OPENAI_API_KEY automatically)
+    client = OpenAI(base_url="https://openrouter.ai/api/v1")
+    logger.info("🔧 OpenRouter client instantiated")
 
-    primary_model = "deepseek/deepseek-r1:free"
-    fallback_model = "tngtech/deepseek-r1t-chimera:free"
+    primary_model  = "deepseek/deepseek-r1:free"
+    fallback_model = "deepseek/deepseek-v3-base:free"
 
-    # Try primary model
+    # 6) Try primary
     try:
-        logger.info(f"📡 Sending to OpenRouter (model: {primary_model})")
+        logger.info(f"📡 Sending to OpenRouter (model={primary_model})")
         resp = client.chat.completions.create(
             model=primary_model,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "user",   "content": user_prompt}
             ],
             temperature=0.1,
             max_tokens=1024
         )
-        logger.info("✅ Primary model response received.")
+        logger.info("✅ Primary response received")
         return resp.choices[0].message.content
 
     except OpenAIError as e:
-        logger.error(f"❌ Primary model call exception: {type(e).__name__}: {e}")
+        logger.error(f"❌ Primary model call failed: {e}")
 
-    # Try fallback model
+    # 7) Try fallback
     try:
-        logger.warning(f"⚠️ Trying fallback model: {fallback_model}")
+        logger.warning(f"⚠️ Retrying with fallback model={fallback_model}")
         resp = client.chat.completions.create(
             model=fallback_model,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "user",   "content": user_prompt}
             ],
             temperature=0.1,
             max_tokens=1024
         )
-        logger.info("✅ Fallback model response received.")
+        logger.info("✅ Fallback response received")
         return resp.choices[0].message.content
 
     except Exception as e:
-        logger.exception("❌ Both primary and fallback model calls failed.")
+        logger.exception("❌ Both primary & fallback calls failed")
         return "❌ Both primary and fallback models failed."
