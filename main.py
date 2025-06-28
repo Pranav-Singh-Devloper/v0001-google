@@ -166,7 +166,7 @@ def search_mdb(request: ProfileRequest) -> List[Dict[str, Any]]:
 
         # 3) Simplify jobs (optional)
         copy = [simplify_job(job) for job in clean_docs[:15]]
-        simplified_docs = copy[:3]
+        simplified_docs = copy[:10]
 
         # 4) Run LLM analyzer
         analysis = analyze_match(simplified_docs, request.students)

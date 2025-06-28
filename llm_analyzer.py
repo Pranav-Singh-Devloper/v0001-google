@@ -45,7 +45,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
     logger.info("🔧 OpenRouter client instantiated")
 
     primary_model  = "deepseek/deepseek-r1:free"
-    fallback_model = "deepseek/deepseek-v3-base:free"
+    fallback_model = "tngtech/deepseek-r1t-chimera:free"
 
     # 6) Try primary
     try:
@@ -56,8 +56,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt}
             ],
-            temperature=0.1,
-            max_tokens=1024
+            temperature=0.4
         )
         logger.info("✅ Primary response received")
         return resp.choices[0].message.content
@@ -74,8 +73,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt}
             ],
-            temperature=0.1,
-            max_tokens=1024
+            temperature=0.4
         )
         logger.info("✅ Fallback response received")
         return resp.choices[0].message.content
