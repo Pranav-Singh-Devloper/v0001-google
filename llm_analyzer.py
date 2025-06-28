@@ -40,19 +40,19 @@ def analyze_match(jobs: list, student_data: list) -> str:
     user_prompt = f"Student Profile:\n{student_json}"
     print("✍️ Prompts built (system & user)")
 
-    # 4. Instantiate client
-    print("🔧 Instantiating OpenRouter client")
+    # 4. Instantiate client WITH default_headers
+    print("🔧 Instantiating OpenRouter client with default_headers")
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key=openrouter_key
+        api_key=openrouter_key,
+        default_headers={
+            "HTTP-Referer": "https://v0001-google-production.up.railway.app",
+            "X-Title":    "JobMatch AI"
+        }
     )
 
     primary_model  = "deepseek/deepseek-r1:free"
     fallback_model = "tngtech/deepseek-r1t-chimera:free"
-    headers = {
-        "HTTP-Referer": "https://v0001-google-production.up.railway.app",
-        "X-Title": "JobMatch AI"
-    }
 
     # 5. Try primary
     try:
@@ -60,11 +60,10 @@ def analyze_match(jobs: list, student_data: list) -> str:
         resp = client.chat.completions.create(
             model=primary_model,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt}
+                {"role":"system", "content":system_prompt},
+                {"role":"user",   "content":user_prompt}
             ],
-            temperature=0.1,
-            extra_headers=headers
+            temperature=0.1
         )
         print("✅ Primary model call succeeded")
         return resp.choices[0].message.content
@@ -82,11 +81,10 @@ def analyze_match(jobs: list, student_data: list) -> str:
         resp = client.chat.completions.create(
             model=fallback_model,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt}
+                {"role":"system", "content":system_prompt},
+                {"role":"user",   "content":user_prompt}
             ],
-            temperature=0.1,
-            extra_headers=headers
+            temperature=0.1
         )
         print("✅ Fallback model call succeeded")
         return resp.choices[0].message.content
