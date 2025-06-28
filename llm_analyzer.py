@@ -44,7 +44,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
     client = OpenAI(base_url=base_url, api_key=openrouter_key)
 
     primary_model = "deepseek/deepseek-r1:free"
-    fallback_model = "deepseek/deepseek-v3-base:free"
+    fallback_model = "tngtech/deepseek-r1t-chimera:free"
 
     # Try primary
     try:
