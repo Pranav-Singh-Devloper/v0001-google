@@ -8,9 +8,6 @@ logger = logging.getLogger("llm_analyzer")
 logging.basicConfig(level=logging.INFO)
 
 def analyze_match(jobs: list, student_data: list) -> str:
-    """
-    Analyze job matches for a given student using DeepSeek models via OpenRouter.
-    """
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
     if not openrouter_key:
         return "❌ OPENROUTER_API_KEY is missing."
@@ -40,20 +37,27 @@ def analyze_match(jobs: list, student_data: list) -> str:
     )
     user_prompt = f"Student Profile:\n{student_json}"
 
-    base_url = "https://openrouter.ai/api/v1"
-    client = OpenAI(base_url=base_url, api_key=openrouter_key)
+    # instantiate client with referer/title headers
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=openrouter_key,
+        default_headers={
+            "HTTP-Referer": "https://v0001-google-production.up.railway.app",
+            "X-Title": "JobMatch AI"
+        }
+    )
 
-    primary_model = "deepseek/deepseek-r1:free"
+    primary_model  = "deepseek/deepseek-r1:free"
     fallback_model = "tngtech/deepseek-r1t-chimera:free"
 
-    # Try primary
+    # Primary
     try:
-        logger.info(f"📡 Sending to OpenRouter (model: {primary_model})...")
+        logger.info(f"📡 Sending to OpenRouter (model: {primary_model})…")
         resp = client.chat.completions.create(
             model=primary_model,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "system",  "content": system_prompt},
+                {"role": "user",    "content": user_prompt}
             ],
             temperature=0.1
         )
@@ -61,19 +65,20 @@ def analyze_match(jobs: list, student_data: list) -> str:
         return resp.choices[0].message.content
 
     except NotFoundError:
-        logger.warning(f"⚠️ {primary_model} not available, trying {fallback_model}...")
+        logger.warning(f"⚠️ {primary_model} not available, trying {fallback_model}…")
 
     except Exception:
         logger.exception("❌ Primary model call failed.")
         return "❌ Primary model failed."
 
-    # Try fallback
+    # Fallback
     try:
+        logger.info(f"📡 Retrying with {fallback_model}…")
         resp = client.chat.completions.create(
             model=fallback_model,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "system",  "content": system_prompt},
+                {"role": "user",    "content": user_prompt}
             ],
             temperature=0.1
         )
