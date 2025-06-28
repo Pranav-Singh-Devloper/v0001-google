@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 def analyze_match(jobs: list, student_data: list) -> str:
     print("▶️ Starting analyze_match")
 
-    # 1. Check API key
+    # 1. Load API key
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
     print(f"🔑 OPENROUTER_API_KEY: {openrouter_key!r}")
     if not openrouter_key:
@@ -31,7 +31,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
     print(f"👤 student_clean keys: {list(student_clean.keys())}")
 
     # 3. Build prompts
-    jobs_json = json.dumps(jobs_clean, indent=2, separators=(",", ":"))
+    jobs_json    = json.dumps(jobs_clean, indent=2, separators=(",", ":"))
     student_json = json.dumps(student_clean, indent=2, separators=(",", ":"))
     system_prompt = (
         "You are an expert career advisor and the world’s most accurate job matcher.\n"
@@ -40,12 +40,12 @@ def analyze_match(jobs: list, student_data: list) -> str:
     user_prompt = f"Student Profile:\n{student_json}"
     print("✍️ Prompts built (system & user)")
 
-    # 4. Instantiate client WITH default_headers
-    print("🔧 Instantiating OpenRouter client with default_headers")
+    # 4. Instantiate client WITH all required headers (including Authorization)
+    print("🔧 Instantiating OpenRouter client with full headers")
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key=openrouter_key,
         default_headers={
+            "Authorization": f"Bearer {openrouter_key}",
             "HTTP-Referer": "https://v0001-google-production.up.railway.app",
             "X-Title":    "JobMatch AI"
         }
