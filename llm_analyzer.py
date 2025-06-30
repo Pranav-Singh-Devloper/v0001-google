@@ -45,20 +45,17 @@ def analyze_match(jobs: list, student_data: list) -> str:
     - Work type (internship, full‑time, etc.)
     - Start date, title, location(s)
     - Domain fit (e.g., software, AI, finance, management)
-    - Other criteria (e.g., qualifications, certifications)
+    - Other criteria (e.g., qualifications, certification, etc)
     3. **Compute a Match Score (0–100%)** for each job based on the student’s experience, skills, and preferences.
     4. **Sort jobs** in descending order of Match Score.
-    5. **For each job**, output:
-    🎯 Job index (Start: YYYY‑MM‑DD) – “title/role” at company
-    🔢 Match Score: XX%
-    ✅ Strengths (why it fits):
-    • …
-    • …
-    ⚠️ Gaps (potential difficulties):
-    • …
-    • …
+    5. **For each job**, reason:
+    Job index (Start: DD-MM-YYYY) – “title/role” at company
+    Match Score: XX%
+    Strengths (why it fits): detailed strength analysis
+    Gaps (potential difficulties): detailed weakness analysis
     6. Use **emojis**, **bold headers**, and **bullet points** for clarity.
     7. **USE** consume unnecessary context—preserve room for a detailed, multi‑paragraph response.
+    8. **THE OUTPUT SHOULD BE STRICTLY IN A JSON ARRAY FORMAT AND STRICTLY JSON ARRAY FORMAT IN A SINGLE LINE NOT IN MULTIPLE LINES OR MARKDOWN FORMAT AND STRICTLY NO BACKSLASH IN WITH THE FOLLOWING KEY'S 0. match_score 1. company_name 2. job_role 3. strengths 4. weakness for all the companies. THE BULLET POINTS IN THE STRENGTHS AND WEAKNESS SHOULD ALSO BE IN THE FORMAT OF A JSON ARRAY** 
 
     Job Postings JSON:
     {jobs_json}
@@ -74,7 +71,7 @@ def analyze_match(jobs: list, student_data: list) -> str:
     client = OpenAI(base_url="https://openrouter.ai/api/v1")
     logger.info("🔧 OpenRouter client instantiated")
 
-    primary_model  = "qwen/qwen3-30b-a3b-04-28:free"
+    primary_model  = "deepseek/deepseek-r1:free"
     fallback_model = "tngtech/deepseek-r1t-chimera:free"
 
     # 6) Try primary
