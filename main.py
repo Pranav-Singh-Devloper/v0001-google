@@ -173,11 +173,48 @@ def search_mdb(request: ProfileRequest) -> List[Dict[str, Any]]:
 
         return JSONResponse(content={"analysis": analysis, "mongodb_result": copy})
 
-
-
     except Exception as e:
         logging.exception("Atlas Search failed")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/mongo-only")
+def mongo_only_results(request: ProfileRequest) -> List[Dict[str, Any]]:
+    """
+    Returns raw MongoDB Atlas Search results (simplified),
+    without LLM analysis.
+    """
+    try:
+        student    = request.students[0]
+        prefs      = student.get("job_preferences", {})
+        interests  = prefs.get("interests", []) or [request.interests]
+        skills     = student.get("skills", [])
+        locations  = prefs.get("preferred_locations", [])
+
+        pipeline = build_internship_pipeline(
+            interests=interests,
+            skills=skills,
+            preferred_locations=locations,
+        )
+
+        docs = list(jobs_collection.aggregate(pipeline))
+
+        # Convert ObjectIds to strings
+        clean_docs = [oid_to_str(doc) for doc in docs]
+
+        # Rename _id to job_id
+        for d in clean_docs:
+            if "_id" in d:
+                d["job_id"] = d.pop("_id")
+
+        # Simplify for frontend
+        simplified = [simplify_job(job) for job in clean_docs[:10]]
+
+        return JSONResponse(content={"mongodb_result": simplified})
+
+    except Exception as e:
+        logging.exception("Mongo-only search failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # AWS Lambda support (Mangum)
 handler = Mangum(app)
