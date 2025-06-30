@@ -33,18 +33,48 @@ def analyze_match(jobs: list, student_data: list) -> str:
     # 4) Build prompts
     jobs_json    = json.dumps(jobs_clean, indent=2, separators=(",", ":"))
     student_json = json.dumps(student_clean, indent=2, separators=(",", ":"))
-    system_prompt = (
-        "You are an expert career advisor and the world’s most accurate job matcher.\n\n"
-        f"Job Postings:\n{jobs_json}"
-    )
-    user_prompt = f"Student Profile:\n{student_json}"
+
+    system_prompt = f"""
+    You are an expert career advisor and the world’s most accurate job matcher. 
+    Your job is to consume two JSON blobs—the first is a list of job postings, the second is a single student profile—and to produce a beautifully formatted, reader‑friendly evaluation.
+
+    Your output must:
+    1. **Parse JSON exactly**, failing with a clear error if the structure is unexpected.
+    2. **Analyze each job posting** for:
+    - Required vs. preferred skills
+    - Work type (internship, full‑time, etc.)
+    - Start date, title, location(s)
+    - Domain fit (e.g., software, AI, finance, management)
+    - Other criteria (e.g., qualifications, certifications)
+    3. **Compute a Match Score (0–100%)** for each job based on the student’s experience, skills, and preferences.
+    4. **Sort jobs** in descending order of Match Score.
+    5. **For each job**, output:
+    🎯 Job index (Start: YYYY‑MM‑DD) – “title/role” at company
+    🔢 Match Score: XX%
+    ✅ Strengths (why it fits):
+    • …
+    • …
+    ⚠️ Gaps (potential difficulties):
+    • …
+    • …
+    6. Use **emojis**, **bold headers**, and **bullet points** for clarity.
+    7. **USE** consume unnecessary context—preserve room for a detailed, multi‑paragraph response.
+
+    Job Postings JSON:
+    {jobs_json}
+    """.strip()
+
+    user_prompt = f"""
+    Student Profile JSON:
+    {student_json}
+    """.strip()
     logger.info("✍️ Prompts built")
 
     # 5) Instantiate client (SDK will use OPENAI_API_KEY automatically)
     client = OpenAI(base_url="https://openrouter.ai/api/v1")
     logger.info("🔧 OpenRouter client instantiated")
 
-    primary_model  = "deepseek/deepseek-r1:free"
+    primary_model  = "qwen/qwen3-30b-a3b-04-28:free"
     fallback_model = "tngtech/deepseek-r1t-chimera:free"
 
     # 6) Try primary
