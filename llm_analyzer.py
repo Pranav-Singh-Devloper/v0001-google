@@ -55,7 +55,8 @@ def analyze_match(jobs: list, student_data: list) -> str:
     Gaps (potential difficulties): detailed weakness analysis
     6. Use **emojis**, **bold headers**, and **bullet points** for clarity.
     7. **USE** consume unnecessary context—preserve room for a detailed, multi‑paragraph response.
-    8. **THE OUTPUT SHOULD BE STRICTLY IN A JSON ARRAY FORMAT AND STRICTLY JSON ARRAY FORMAT IN A SINGLE LINE NOT IN MULTIPLE LINES OR MARKDOWN FORMAT AND STRICTLY NO BACKSLASH IN WITH THE FOLLOWING KEY'S 0. match_score 1. company_name 2. job_role 3. strengths 4. weakness for all the companies. THE BULLET POINTS IN THE STRENGTHS AND WEAKNESS SHOULD ALSO BE IN THE FORMAT OF A JSON ARRAY** 
+    8. **THE OUTPUT SHOULD BE STRICTLY IN A JSON ARRAY FORMAT AND STRICTLY JSON ARRAY FORMAT IN A SINGLE LINE NOT IN MULTIPLE LINES OR MARKDOWN FORMAT AND STRICTLY NO BACKSLASH IN WITH THE FOLLOWING KEY'S 
+        0. match_score 1. company_name 2. job_role 3. strengths 4. weakness for all the companies 5. joburl . THE BULLET POINTS IN THE STRENGTHS AND WEAKNESS SHOULD ALSO BE IN THE FORMAT OF A JSON ARRAY** 
 
     Job Postings JSON:
     {jobs_json}
